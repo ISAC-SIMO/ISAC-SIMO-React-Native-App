@@ -81,7 +81,7 @@ project.ext.react = [
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
-
+apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices
@@ -128,13 +128,13 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.isac"
+        applicationId "com.filter4"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-         missingDimensionStrategy 'react-native-camera', 'general'
-         multiDexEnabled true //important
+        multiDexEnabled true
+        missingDimensionStrategy 'react-native-camera', 'general'
     }
     splits {
         abi {
@@ -181,11 +181,13 @@ android {
 }
 
 dependencies {
-    implementation project(':react-native-camera')
-    implementation project(':react-native-image-picker')
+    implementation project(':react-native-vector-icons')
+    implementation project(':react-native-gesture-handler')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
+       implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
+addUnimodulesDependencies()
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")

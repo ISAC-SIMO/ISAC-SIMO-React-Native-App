@@ -1,5 +1,5 @@
 import {Component} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState,PropTypes} from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
   View,

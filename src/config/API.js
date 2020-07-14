@@ -1,4 +1,4 @@
-export const BaseURL = 'https://isac-simo.herokuapp.com/api/';
+export const BaseURL = 'https://www.isac-simo.net/api/';
 
 export const RegisterURL = `${BaseURL}/register/`;
 export const LoginURL = `${BaseURL}/auth/`;

@@ -11,7 +11,7 @@ type Props = {
 
 const Background = ({ children }: Props) => (
   <ImageBackground
-    source={require('../assets/background_dot.png')}
+    //source={require('../assets/background_dot.png')}
     resizeMode="repeat"
     style={styles.background}
   >
@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',
+  
   },
   container: {
     flex: 1,

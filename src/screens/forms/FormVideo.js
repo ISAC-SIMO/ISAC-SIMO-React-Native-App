@@ -1,6 +1,7 @@
-import {Component} from 'react';
-import React, {useEffect, useState} from 'react';
+import { Component } from 'react';
+import React, { useEffect, useState, PropTypes } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 import {
   View,
   Text,
@@ -14,7 +15,7 @@ import {
   Keyboard,
   Picker,
   TextInput,
-  Button,
+  Button, ActivityIndicator
 } from 'react-native';
 import {
   Table,
@@ -23,11 +24,8 @@ import {
   TableWrapper,
   Col,
 } from 'react-native-table-component';
-// import ImagePicker from 'react-native-image-picker'
-//import ImagePicker from 'react-native-image-picker';
 import RNFetchBlob from 'rn-fetch-blob';
-//import ImageComponent from './ImageComponent';
-import {Appbar} from 'react-native-paper';
+import { Appbar } from 'react-native-paper';
 import { FAB } from 'react-native-paper';
 //import ImagePicker from 'react-native-image-crop-picker';
 /*import {
@@ -58,13 +56,13 @@ import IconsArrow from 'react-native-vector-icons/MaterialIcons';
 import IconsAnt from 'react-native-vector-icons/AntDesign';
 
 import Modal from 'react-native-modal';
-import {Avatar, Card, Title, Paragraph} from 'react-native-paper';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 //import LocalizationContext from '../../LocalizationContext';
 //import ImagePicker from 'react-native-image-picker';
 //const abc = React.useContext(LocalizationContext);
 
-import {ActionSheetCustom as ActionSheet} from 'react-native-actionsheet';
+import { ActionSheetCustom as ActionSheet } from 'react-native-actionsheet';
 import ImagePicker from 'react-native-image-crop-picker';
 
 import Video from 'react-native-video';
@@ -72,17 +70,17 @@ import Video from 'react-native-video';
 import VideoPlayer from '../../components/VideoPlayer';
 const options = [
   'Cancel',
-  <Text style={{color: 'blue'}}>Record a Video</Text>,
-  <Text style={{color: 'blue'}}>Import from Gallery</Text>,
+  <Text style={{ color: 'blue' }}>Record a Video</Text>,
+  <Text style={{ color: 'blue' }}>Import from Gallery</Text>,
 ];
 
 type Props = {
   navigation: Navigation,
 };
-const ContentTitle = ({title, style}) => (
+const ContentTitle = ({ title, style }) => (
   <Appbar.Content
     title={<Text style={style}> {title} </Text>}
-    style={{alignItems: 'center'}}
+    style={{ alignItems: 'center' }}
   />
 );
 //const HomePage = props => {
@@ -110,8 +108,8 @@ export default class HomePage extends Component {
       damage_wall: '',
       storeys: '',
       pickerOptions: [
-        {name: 'Yes', id: 1},
-        {name: 'No', id: 2},
+        { name: 'Yes', id: 1 },
+        { name: 'No', id: 2 },
       ],
 
       avatarSource1: null,
@@ -164,6 +162,8 @@ export default class HomePage extends Component {
 
       videoFile: '',
       videoPath: '',
+      resData2: '',
+      isLoading: false
     };
     this.deleteImageSingle2 = this.deleteImageSingle2.bind(this);
   }
@@ -184,140 +184,261 @@ export default class HomePage extends Component {
   _goBack = () => console.log('Went back');
 
   _handleSearch = () => console.log('Searching');
+  storeData = async (data) => {
+    try {
+      await AsyncStorage.setItem('responseData', data)
+    } catch (e) {
+      // saving error
+    }
+  }
 
-  _handleMore = () => {
-    const videoType = this.state.videoFile.mime;
-    const videoPath = this.state.videoFile.path;
-    Keyboard.dismiss;
-    Alert.alert(
-      'Sucessfully Submitted',
-      'Form has been sucessfully submitted.Please go following link to see the result',
-      [
-       
-        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-        {text: 'OK', onPress: () => this.props.navigation.navigate('FormResult')},
-      ],
-      { cancelable: false }
-    )
-    this.setState({
-      loading: true,
-      isModalGo: true,
+  getData = async () => {
+
+    AsyncStorage.getItem('responseData', (err, result) => {
+      if (!err && result != null) {
+        // alert("1"+result);
+        return result;
+      }
+      else {
+        //alert("2"+result);
+        return 'no-data';
+        // do something else
+      }
+      //callback(result);
     });
-    console.log('hi');
-    console.log(
-      {name: 'name', data: this.state.Usrname.toString()},
-      {name: 'desc', data: this.state.Description.toString()},
+  }
+  removeData = async (key) => {
+    try {
+      await AsyncStorage.removeItem(key);
+      return true;
+    }
+    catch (exception) {
+      return false;
+    }
+  }
+  _handleMore = async () => {
+    let missingField = '';
 
-      {name: 'lat', data: this.state.lat.toString()},
-      {name: 'long', data: this.state.long.toString()},
-    );
-    const data = new FormData();
-    data.append('video', {
-      name: 'mobile-video-upload',
-      videoType,
-      videoPath,
-    });
-    console.log('DATE0' + JSON.stringify(data));
-    RNFetchBlob.fetch(
-      'POST',
-      'https://niush.pythonanywhere.com/api/video/',
-      {
-        Authorization: 'Bearer ' + this.state.token,
-        // otherHeader : "foo",
-        'Content-Type': 'multipart/form-data',
+    if (this.state.Usrname == '') {
+      missingField += 'Enter Title\n';
 
-        //'Content-Type': 'application/json',
-      },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        {name: 'title', data: this.state.Usrname.toString()},
-        {name: 'description', data: this.state.Description.toString()},
-        {name: 'lat', data: this.state.lat.toString()},
-        {name: 'lng', data: this.state.long.toString()},
-        {
-          name: 'image_1',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar1data),
-        },
+    }
+    if (this.state.Description == '') {
+      missingField += 'Enter Description\n';
 
-        {
-          name: 'image_xyz',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar2data),
-        },
-        {
-          name: 'image_file1',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar3data),
-        },
-      ],
-    )
-      .then(resp => {
-        console.log('RE' + JSON.stringify(resp));
-        const myrespnse = JSON.parse(resp.data);
-        const imageres0 = myrespnse.image_files[0];
-        const imageres1 = myrespnse.image_files[1];
-        const imageres2 = myrespnse.image_files[2];
-        /*
-        image1file
-        image1tested
-        image1result
-        image1score
 
-        */
-        //file
-        //tested
-        //result
-        //score
+    }
+    if (this.state.lat == '') {
+      missingField += 'Enter latitude\n';
 
-        this.setState(
-          {
-            image1file: imageres0.file,
-            image1tested: imageres0.tested,
-            image1result: imageres0.result,
-            image1score: imageres0.score,
+    }
+    if (this.state.long == '') {
+      missingField += 'Enter longitude\n';
 
-            image2file: imageres1.file,
-            image2tested: imageres1.tested,
-            image2result: imageres1.result,
-            image2score: imageres1.score,
+    }
+    if (this.state.videoPath == '') {
+      missingField += 'Upload Video  1\n';
 
-            image3file: imageres2.file,
-            image3tested: imageres2.tested,
-            image3result: imageres2.result,
-            image3score: imageres2.score,
-          },
-          this.toggleModal(),
-        );
-
-        console.log('new data' + imageres0.tested);
-        // ...
-      })
-      .catch(err => {
-        // ...
+    }
+    if (missingField == '') {
+      const videoType = this.state.videoFile.mime;
+      const videoPath = this.state.videoFile.path;
+      Keyboard.dismiss;
+      NetInfo.fetch().then(async state  => {
+        if (state.isConnected==true) {
+          this.setState({
+            loading: true,
+            isModalGo: true,
+            isLoading: true,
+          });
+          console.log('hi');
+          console.log(
+            { name: 'title', data: this.state.Usrname.toString() },
+            { name: 'description', data: this.state.Description.toString() },
+            { name: 'lat', data: this.state.lat.toString() },
+            { name: 'lng', data: this.state.long.toString() },
+            { name: 'image_1', filename: 'vid.mp4', data: RNFetchBlob.wrap(this.state.videoPath) },
+          );
+          const data = new FormData();
+          data.append('video', {
+            name: 'mobile-video-upload',
+            videoType,
+            videoPath,
+          });
+          console.log('DATE0' + JSON.stringify(data));
+          await RNFetchBlob.fetch(
+            'POST',
+            'https://www.isac-simo.net/api/video/',
+            {
+              Authorization: 'Bearer ' + this.state.token,
+              // otherHeader : "foo",
+              'Content-Type': 'multipart/form-data',
+    
+              //'Content-Type': 'application/json',
+            },
+            [
+              // element with property `filename` will be transformed into `file` in form data
+              { name: 'title', data: this.state.Usrname.toString() },
+              { name: 'description', data: this.state.Description.toString() },
+              { name: 'lat', data: this.state.lat.toString() },
+              { name: 'lng', data: this.state.long.toString() },
+              { name: 'image_1', filename: 'vid.mp4', data: RNFetchBlob.wrap(this.state.videoPath) }
+            ],
+          )
+            .then(resp => {
+              console.log('RE' + JSON.stringify(resp));
+              const myrespnse = JSON.parse(resp.data);
+              const imageres0 = myrespnse.image_files[0];
+              const imageres1 = myrespnse.image_files[1];
+              const imageres2 = myrespnse.image_files[2];
+    
+    
+              const resData1 = JSON.parse(resp.data);
+              const resData2 = resData1.image_files;
+              console.log('RE' + JSON.stringify(resp.data));
+              console.log('RE3' + JSON.stringify(resData2));
+              /*
+                      image1file
+                      image1tested
+                      image1result
+                      image1score
+              
+                      */
+              //file
+              //tested
+              //result 
+              //score
+    
+              const resData = [
+                {
+                  "file": "1.jpg",
+                  "tested": true,
+                  "result": "go",
+                  "score": 0.918
+                },
+                {
+                  "file": "2.jpg",
+                  "tested": true,
+                  "result": "go",
+                  "score": 0.913
+                },
+                {
+                  "file": "3.jpg",
+                  "tested": true,
+                  "result": "go",
+                  "score": 0.921
+                },
+                {
+                  "file": "3.jpg",
+                  "tested": true,
+                  "result": "go",
+                  "score": 0.944
+                },
+                {
+                  "file": "4.jpg",
+                  "tested": true,
+                  "result": "go",
+                  "score": 0.941
+                }
+              ];
+    
+    
+              setTimeout(() => {
+                Alert.alert(
+                  'Sucessfully Submitted',
+                  'Form has been sucessfully submitted.Please go following link to see the result',
+                  [
+    
+                    { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
+                    {
+                      text: 'OK', onPress: () =>
+                      
+                      this.props.navigation.dispatch(
+                        StackActions.replace('FormResult', {
+                          resData: resData2,
+                        })
+                      )
+                      
+                    
+                    },
+                  ],
+                  { cancelable: false }
+                );
+                this.setState({
+                  isLoading: false
+                })
+              }, 9000);
+    
+              this.setState({
+                isLoading: false
+              })
+    
+    
+              this.setState(
+                {
+                  image1file: imageres0.file,
+                  image1tested: imageres0.tested,
+                  image1result: imageres0.result,
+                  image1score: imageres0.score,
+    
+                  image2file: imageres1.file,
+                  image2tested: imageres1.tested,
+                  image2result: imageres1.result,
+                  image2score: imageres1.score,
+    
+                  image3file: imageres2.file,
+                  image3tested: imageres2.tested,
+                  image3result: imageres2.result,
+                  image3score: imageres2.score,
+                }
+                //this.toggleModal(),
+              );
+    
+              console.log('new data' + imageres0.tested);
+              // ...
+            })
+            .catch(err => {
+              // ...
+            });
+        }
+        else{
+alert('You are not cnneceted to interrnet');
+        }
       });
+
+
+    
+    }
+    else {
+      alert(missingField);
+      this.setState({
+        isLoading: false
+      })
+    }
+
+
+
+
+
   };
   toggleModal = () => {
-    this.setState({isModalVisible: !this.state.isModalVisible});
+    this.setState({ isModalVisible: !this.state.isModalVisible });
   };
   toggleModal2 = () => {
-    this.setState({isModalVisible: !this.state.isModalVisible2});
+    this.setState({ isModalVisible: !this.state.isModalVisible2 });
   };
 
   _toggleComponentA = () =>
-    this.setState({showComponentA: !this.state.showComponentA});
+    this.setState({ showComponentA: !this.state.showComponentA });
 
   _toggleComponentB = () =>
-    this.setState({showComponentB: !this.state.showComponentB});
+    this.setState({ showComponentB: !this.state.showComponentB });
   _toggleComponentC = () =>
-    this.setState({showComponentC: !this.state.showComponentC});
+    this.setState({ showComponentC: !this.state.showComponentC });
 
-  _toggleModalGo = () => this.setState({isModalGo: !this.state.isModalGo});
+  _toggleModalGo = () => this.setState({ isModalGo: !this.state.isModalGo });
   _toggleModalNoGo = () =>
-    this.setState({isModalNogo: !this.state.isModalNogo});
+    this.setState({ isModalNogo: !this.state.isModalNogo });
 
   recordVideo = () => {
     const navigation = useNavigation();
@@ -405,7 +526,7 @@ export default class HomePage extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        let source = {uri: response.uri};
+        let source = { uri: response.uri };
         let data = response.path;
         let type = response.type;
         // You can also display the image using data:
@@ -440,7 +561,7 @@ export default class HomePage extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        let source = {uri: response.uri};
+        let source = { uri: response.uri };
         let data = response.path;
         let type = response.type;
         // You can also display the image using data:
@@ -555,7 +676,7 @@ export default class HomePage extends Component {
             // See error code charts below.
             console.log(error.code, error.message);
           },
-          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
         );
 
         // }
@@ -634,7 +755,7 @@ export default class HomePage extends Component {
           } else if (response.customButton) {
             console.log('User tapped custom button: ', response.customButton);
           } else {
-            const source = {uri: response.uri};
+            const source = { uri: response.uri };
 
             // You can also display the image using data:
             // const source = { uri: 'data:image/jpeg;base64,' + response.data };
@@ -654,7 +775,7 @@ export default class HomePage extends Component {
           } else if (response.customButton) {
             console.log('User tapped custom button: ', response.customButton);
           } else {
-            let source = {uri: response.uri};
+            let source = { uri: response.uri };
             let data = response.path;
             let type = response.type;
 
@@ -751,13 +872,13 @@ export default class HomePage extends Component {
     });
     console.log('hi');
     console.log(
-      {name: 'email', data: this.state.email.toString()},
-      {name: 'name', data: this.state.Usrname.toString()},
-      {name: 'desc', data: this.state.Description.toString()},
-      {name: 'phone_no', data: this.state.Phone.toString()},
-      {name: 'lat', data: this.state.lat.toString()},
-      {name: 'long', data: this.state.long.toString()},
-      {name: 'disaster_timeline', data: this.state.disaster.toString()},
+      { name: 'email', data: this.state.email.toString() },
+      { name: 'name', data: this.state.Usrname.toString() },
+      { name: 'desc', data: this.state.Description.toString() },
+      { name: 'phone_no', data: this.state.Phone.toString() },
+      { name: 'lat', data: this.state.lat.toString() },
+      { name: 'long', data: this.state.long.toString() },
+      { name: 'disaster_timeline', data: this.state.disaster.toString() },
     );
     /* console.log(
       JSON.stringify([
@@ -871,10 +992,10 @@ export default class HomePage extends Component {
         },
         [
           // element with property `filename` will be transformed into `file` in form data
-          {name: 'title', data: this.state.email.toString()},
-          {name: 'description', data: this.state.Description.toString()},
-          {name: 'lat', data: this.state.lat.toString()},
-          {name: 'lng', data: this.state.long.toString()},
+          { name: 'title', data: this.state.email.toString() },
+          { name: 'description', data: this.state.Description.toString() },
+          { name: 'lat', data: this.state.lat.toString() },
+          { name: 'lng', data: this.state.long.toString() },
           {
             name: 'image_1',
             filename: 'front.jpeg',
@@ -914,10 +1035,10 @@ export default class HomePage extends Component {
         },
         [
           // element with property `filename` will be transformed into `file` in form data
-          {name: 'title', data: this.state.email.toString()},
-          {name: 'description', data: this.state.Description.toString()},
-          {name: 'lat', data: this.state.lat.toString()},
-          {name: 'lng', data: this.state.long.toString()},
+          { name: 'title', data: this.state.email.toString() },
+          { name: 'description', data: this.state.Description.toString() },
+          { name: 'lat', data: this.state.lat.toString() },
+          { name: 'lng', data: this.state.long.toString() },
           {
             name: 'image_1',
             filename: 'front.jpeg',
@@ -953,18 +1074,23 @@ export default class HomePage extends Component {
     //console.log(JSON.stringify(sampleState));
 
     return (
-      <View style={{backgroundColor: '#d2dae2'}}>
-           <FAB
-    style={styles.fab}
-    color="#fff"
-    small
-    icon="send"
-    onPress={() => this._handleMore()}
-  />
+      <View style={{ backgroundColor: '#d2dae2' }}>
+        {
+          this.state.isLoading == true ?
+            <ActivityIndicator size="large" color="purple" /> : null
+        }
+        <FAB
+          loading={this.state.isLoading == true ? true : false}
+          style={styles.fab}
+          color="#fff"
+          small
+          icon="send"
+          onPress={() => this._handleMore()}
+        />
 
         <ScrollView>
           <Modal
-            style={{backgroundColor: '#fff', height: 200}}
+            style={{ backgroundColor: '#fff', height: 200 }}
             animationType="slide"
             // visible={visible}
             backdropColor="black"
@@ -993,8 +1119,8 @@ export default class HomePage extends Component {
                   Sorry{' '}
                 </Text>
 
-                <View style={{backgroundColor: '#fff', height: 200}}>
-                  <View style={{flex: 1}}>
+                <View style={{ backgroundColor: '#fff', height: 200 }}>
+                  <View style={{ flex: 1 }}>
                     <Image
                       style={{
                         width: 120,
@@ -1039,7 +1165,7 @@ export default class HomePage extends Component {
                     69{' '}
                   </Text>
                   <Button
-                    style={{width: 200}}
+                    style={{ width: 200 }}
                     title="Close"
                     onPress={this.toggleModal2}
                   />
@@ -1049,7 +1175,7 @@ export default class HomePage extends Component {
           </Modal>
 
           <Modal
-            style={{backgroundColor: '#fff', height: 200}}
+            style={{ backgroundColor: '#fff', height: 200 }}
             animationType="slide"
             // visible={visible}
             backdropColor="black"
@@ -1065,7 +1191,7 @@ export default class HomePage extends Component {
                 alignItems: 'center',
               }}>
               <View style={styles.container}>
-                <Table borderStyle={{borderWidth: 1}}>
+                <Table borderStyle={{ borderWidth: 1 }}>
                   <Row
                     data={this.state.tableHead}
                     flexArr={[1, 2, 1, 1]}
@@ -1103,8 +1229,8 @@ export default class HomePage extends Component {
                   We have detected:{' '}
                 </Text>
 
-                <View style={{backgroundColor: '#fff', height: 200}}>
-                  <View style={{marginVertical: 10}}></View>
+                <View style={{ backgroundColor: '#fff', height: 200 }}>
+                  <View style={{ marginVertical: 10 }}></View>
                   <View
                     style={{
                       height: 1,
@@ -1233,10 +1359,10 @@ export default class HomePage extends Component {
                       width: '100%',
                       backgroundColor: '#000',
                     }}></View>
-                  <View style={{marginVertical: 10}}></View>
+                  <View style={{ marginVertical: 10 }}></View>
 
                   <Button
-                    style={{width: 200}}
+                    style={{ width: 200 }}
                     title="Close"
                     onPress={this.toggleModal}
                   />
@@ -1259,7 +1385,7 @@ export default class HomePage extends Component {
             {this.state.showComponentA ? (
               <Card.Content>
                 <KeyboardAwareScrollView>
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       Title
@@ -1278,7 +1404,7 @@ export default class HomePage extends Component {
                   </View>
 
                   <KeyboardAwareScrollView>
-                    <View style={{paddingVertical: 8}}>
+                    <View style={{ paddingVertical: 8 }}>
                       <Text style={styles.newText}>
                         <Text style={styles.required}>*</Text>
                         Description
@@ -1317,7 +1443,7 @@ export default class HomePage extends Component {
                     </View>
                   </KeyboardAwareScrollView>
 
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       latitude
@@ -1330,7 +1456,7 @@ export default class HomePage extends Component {
                     />
                   </View>
 
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       longitude
@@ -1345,8 +1471,8 @@ export default class HomePage extends Component {
                 </KeyboardAwareScrollView>
               </Card.Content>
             ) : (
-              <Text></Text>
-            )}
+                <Text></Text>
+              )}
           </Card>
 
           <Card style={styles.cardWrapper} elevation={5}>
@@ -1363,17 +1489,15 @@ export default class HomePage extends Component {
             />
 
             {this.state.showComponentC ? (
-              <Card.Content style={{marginBottom:50,paddingBottom:50}}>
-                <View style={{flex: 1,alignItems:'center'}}>
-
-
+              <Card.Content style={{ marginBottom: 50, paddingBottom: 50 }}>
+                <View style={{ flex: 1, alignItems: 'center' }}>
 
 
                   <View style={styles.container}>
                     <ActionSheet
                       ref={o => (this.ActionSheet = o)}
                       title={
-                        <Text style={{color: '#000', fontSize: 18}}>
+                        <Text style={{ color: '#000', fontSize: 18 }}>
                           Upload a Video
                         </Text>
                       }
@@ -1396,66 +1520,67 @@ export default class HomePage extends Component {
                       {' '}
                       <Text style={styles.required}>* </Text>Video
                     </Text>
-                    <TouchableOpacity
-                      onPress={this.selectPhotoTapped1.bind(this)}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarContainer,
-                          {marginBottom: 20},
-                        ]}>
-                        {this.state.avatarSource1 === null ? (
-                          <IconsAnt
-                            name="camerao"
-                            size={50}
-                            color="#bedff6"
-                            onPress={this.showActionSheet}
-                          />
-                        ) : (
+
+
+                    <View
+                      style={[
+                        styles.avatar,
+                        styles.avatarContainer,
+                        { marginBottom: 20 },
+                      ]}>
+                      {this.state.avatarSource1 === null ? (
+                        <IconsAnt
+                          name="camerao"
+                          size={50}
+                          color="#bedff6"
+                          onPress={this.showActionSheet}
+                        />
+                      ) : (
                           <Image
                             style={styles.avatar}
                             source={this.state.avatarSource1}
                           />
                         )}
-                      </View>
-                    </TouchableOpacity>
+                    </View>
+
+
                   </View>
                 </View>
 
-                <View style={{flex: 1, alignItems: 'center'}}></View>
+                <View style={{ flex: 1, alignItems: 'center' }}></View>
 
                 <View>
                   {this.state.videoPath != '' ? (
                     <View style={{
-                                        backgroundColor:'#525252',
-                      margin:2,
-                      padding:5
-                }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-
+                      backgroundColor: '#525252',
+                      margin: 2,
+                      padding: 5
                     }}>
-                    <Text style={{textAlign: 'left',color:'#fff',paddingVertical:3}}>
-                      Uploaded Video
-                    </Text>
-                    <Icons
-                      name="close"
-                      size={20}
-                      style={{ textAlign: 'right',color:'#fff'}}
-                    
-                      onPress={index => {
-                        console.log('sss');
-                        this.setState({
-                          videoFile:'',
-                          videoPath:''
-                        })
-                      }}
-                    />
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
 
-                  </View>
-                  <VideoPlayer
+                        }}>
+                        <Text style={{ textAlign: 'left', color: '#fff', paddingVertical: 3 }}>
+                          Uploaded Video
+                    </Text>
+                        <Icons
+                          name="close"
+                          size={20}
+                          style={{ textAlign: 'right', color: '#fff' }}
+
+                          onPress={index => {
+                            console.log('sss');
+                            this.setState({
+                              videoFile: '',
+                              videoPath: ''
+                            })
+                          }}
+                        />
+
+                      </View>
+                      <VideoPlayer
                         style={{
                           marginBottom: 50,
                           backgroundColor: 'gray',
@@ -1465,14 +1590,14 @@ export default class HomePage extends Component {
                         }}
                         newurl={this.state.videoPath}
                       />
-                </View>
+                    </View>
                   ) : null}
                 </View>
                 <View></View>
               </Card.Content>
             ) : (
-              <Text></Text>
-            )}
+                <Text></Text>
+              )}
           </Card>
         </ScrollView>
       </View>
@@ -1514,9 +1639,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     margin: 16,
     right: 0,
-    bottom: 10, 
-    zIndex:99999,
-    backgroundColor:'#64b3ea'
+    bottom: 10,
+    zIndex: 99999,
+    backgroundColor: '#64b3ea'
 
   },
   cardWrapper: {
@@ -1616,10 +1741,10 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
 
-  container: {flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff'},
-  head: {height: 40, backgroundColor: '#f1f8ff'},
-  wrapper: {flexDirection: 'row'},
-  title: {flex: 1, backgroundColor: '#f6f8fa'},
-  row: {height: 28},
-  text: {textAlign: 'center'},
+  container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
+  head: { height: 40, backgroundColor: '#f1f8ff' },
+  wrapper: { flexDirection: 'row' },
+  title: { flex: 1, backgroundColor: '#f6f8fa' },
+  row: { height: 28 },
+  text: { textAlign: 'center' },
 });

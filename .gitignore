@@ -20,6 +20,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+xcshareddata
 
 # Android/IntelliJ
 #
@@ -27,7 +28,10 @@ build/
 .idea
 .gradle
 local.properties
+java_pid24029.hprof
 *.iml
+*.hprof
+
 
 # node.js
 #

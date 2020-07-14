@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React, { Component, PropTypes } from 'react';
 import {useState} from 'react';
 import {View, StyleSheet, Linking, Alert} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
@@ -27,6 +27,7 @@ import FormList from './FormList';
 import FormTab from './FormTab';
 import AuthStack from '../../navigation/AuthStack';
 import AuthContext from '../../AuthContext';
+import AsyncStorage from '@react-native-community/async-storage';
 //const CustomDrawerContent = async (props) => {
 //const CustomDrawerContent = async (props) => {
   function CustomDrawerContent(props) {

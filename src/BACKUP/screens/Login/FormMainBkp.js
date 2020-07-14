@@ -1,4 +1,4 @@
-import {Component} from 'react';
+import {Component,PropTypes} from 'react';
 import React, {useEffect, useState} from 'react';
 import {
   View,

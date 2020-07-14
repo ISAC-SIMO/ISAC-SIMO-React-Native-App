@@ -1,4 +1,4 @@
-import React, {memo, useState} from 'react';
+import React, {memo, useState,PropTypes} from 'react';
 import {TouchableOpacity, StyleSheet, Text, View, Alert} from 'react-native';
 import Background from '../../components/Background';
 import Logo from '../../components/Logo';

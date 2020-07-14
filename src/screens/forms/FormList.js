@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 type Props = {
   navigation: Navigation,
 };
-const DATA = [
+/*const DATA = [
   {
     id: '1',
     title: 'Image Form',
@@ -24,6 +24,31 @@ const DATA = [
     description: 'First Form description',
     link:'FormVideo',
     icon:'video'
+  }
+];
+
+*/
+const DATA = [
+  {
+    id: '1',
+    title: 'Information',
+    description: 'First Form description',
+    link:'Information',
+    icon:'server'
+  },
+  {
+    id: '2',
+    title: 'Quality Check',
+    description: 'First Form description',
+    link:'QualityCheck',
+    icon:'check-circle'
+  },
+  {
+    id: '3',
+    title: 'Reports',
+    description: 'First Form description',
+    link:'Reports',
+    icon:'chart-bar'
   }
 ];
 const Item = ({title}) => {
@@ -56,7 +81,7 @@ const FormList = props => {
   const [email, setEmail] = useState('loading');
   const Boiler = async () => {
     const token = await AsyncStorage.getItem('token');
-    fetch('http://10.0.2.2:3000/', {
+   /* fetch('http://10.0.2.2:3000/', {
       headers: new Headers({
         Authorization: 'Bearer ' + token,
       }),
@@ -65,7 +90,7 @@ const FormList = props => {
       .then(data => {
         console.log(data);
         setEmail(data.email);
-      });
+      });*/
   };
   useEffect(() => {
     // Boiler()
@@ -118,7 +143,7 @@ const FormList = props => {
             <Card.Title
               title={item.title}
               //subtitle="Card Subtitle"
-              left={props => <Avatar.Icon {...props} icon="file-document-box" />}
+              left={props => <Avatar.Icon {...props} icon="bars" />}
             />
             <Card.Content>
               <Icons

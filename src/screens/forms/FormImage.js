@@ -1,5 +1,5 @@
-import {Component} from 'react';
-import React, {useEffect, useState} from 'react';
+import { Component } from 'react';
+import React, { useEffect, useState, PropTypes } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
   View,
@@ -13,14 +13,14 @@ import {
   Alert,
   Keyboard,
   Picker,
-  TextInput,Button,
+  TextInput, Button,
 } from 'react-native';
-import { Table, Row, Rows,TableWrapper,Col } from 'react-native-table-component';
+import { Table, Row, Rows, TableWrapper, Col } from 'react-native-table-component';
 // import ImagePicker from 'react-native-image-picker'
 //import ImagePicker from 'react-native-image-picker';
 import RNFetchBlob from 'rn-fetch-blob';
 //import ImageComponent from './ImageComponent';
-import {Appbar} from 'react-native-paper';
+import { Appbar } from 'react-native-paper';
 import { FAB } from 'react-native-paper';
 //import ImagePicker from 'react-native-image-crop-picker';
 /*import {
@@ -51,27 +51,87 @@ import IconsArrow from 'react-native-vector-icons/MaterialIcons';
 import IconsAnt from 'react-native-vector-icons/AntDesign';
 
 import Modal from 'react-native-modal';
-import {Avatar,  Card, Title, Paragraph} from 'react-native-paper';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 //import LocalizationContext from '../../LocalizationContext';
 import ImagePicker from 'react-native-image-picker';
+import { ActionSheetCustom as ActionSheet } from 'react-native-actionsheet';
 //const abc = React.useContext(LocalizationContext);
+
+
+
+import { Surface } from 'gl-react-native';
+import ImageFilters from 'react-native-gl-image-filters';
+
+import Filter from './Filter';
+
+const width = Dimensions.get('window').width - 40;
+
 type Props = {
   navigation: Navigation,
 };
-const ContentTitle = ({title, style}) => (
+const ContentTitle = ({ title, style }) => (
   <Appbar.Content
     title={<Text style={style}> {title} </Text>}
-    style={{alignItems: 'center'}}
+    style={{ alignItems: 'center' }}
   />
 );
+const options = [
+  'Cancel',
+  <Text style={{ color: 'blue' }}>Click a Photo</Text>,
+  <Text style={{ color: 'blue' }}>Import from Gallery</Text>,
+];
+
+const settings = [
+  {
+    name: 'hue',
+    minValue: -100.0,
+    maxValue: 100.0,
+  },
+  {
+    name: 'blur',
+    maxValue: 2.0,
+  },
+  {
+    name: 'sepia',
+    maxValue: 2.0,
+  },
+  {
+    name: 'sharpen',
+    maxValue: 2.0,
+  },
+  {
+    name: 'negative',
+    maxValue: 2.0,
+  },
+  {
+    name: 'contrast',
+    maxValue: 2.0,
+  },
+  {
+    name: 'saturation',
+    maxValue: 2.0,
+  },
+  {
+    name: 'brightness',
+    maxValue: 2.0,
+  },
+  {
+    name: 'temperature',
+    minValue: 1000.0,
+    maxValue: 40000.0,
+  },
+];
+
 //const HomePage = props => {
 export default class HomePage extends Component {
   constructor(props) {
     super(props);
+    let { width } = Dimensions.get("window");
+    this.maskLength = (width * 90) / 100;
     // const { t, locale, setLocale } = React.useContext(LocalizationContext);
     this.state = {
-      token:'',
+      token: '',
       selected: undefined,
       Usrname: '',
       photo: null,
@@ -90,8 +150,8 @@ export default class HomePage extends Component {
       damage_wall: '',
       storeys: '',
       pickerOptions: [
-        {name: 'Yes', id: 1},
-        {name: 'No', id: 2},
+        { name: 'Yes', id: 1 },
+        { name: 'No', id: 2 },
       ],
 
       avatarSource1: null,
@@ -120,18 +180,18 @@ export default class HomePage extends Component {
 
       isModalVisible: false,
 
-      image1file:'',
-      image1tested:'',
-      image1result:'',
-      image1score:'',
-      image2file:'',
-      image2tested:'',
-      image2result:'',
-      image2score:'',
-      image3file:'',
-      image3tested:'',
-      image3result:'',
-      image3score:'',
+      image1file: '',
+      image1tested: '',
+      image1result: '',
+      image1score: '',
+      image2file: '',
+      image2tested: '',
+      image2result: '',
+      image2score: '',
+      image3file: '',
+      image3tested: '',
+      image3result: '',
+      image3score: '',
 
 
       tableHead: ['', 'Head1', 'Head2', 'Head3'],
@@ -141,142 +201,261 @@ export default class HomePage extends Component {
         ['a', 'b', 'c'],
         ['1', '2', '3'],
         ['a', 'b', 'c']
-      ]
+      ],
+      isLoading:false,
+
+      /**ncamera */
+      type: "back",
+      ratio: "16:9",
+      ratios: [],
+      photoId: 1,
+      photos: [],
+      croppedImageURI: undefined
     };
     this.deleteImageSingle2 = this.deleteImageSingle2.bind(this);
+  }
+  showActionSheet1 = () => {
+    this.ActionSheet1.show()
+  }
+  showActionSheet2 = () => {
+    this.ActionSheet2.show()
+  }
+  showActionSheet3 = () => {
+    this.ActionSheet1.show()
   }
   _goBack = () => console.log('Went back');
 
   _handleSearch = () => console.log('Searching');
 
   _handleMore = () => {
-
-    Keyboard.dismiss;
-    Alert.alert(
-      'Sucessfully Submitted',
-      'Form has been sucessfully submitted.Please go following link to see the result',
-      [
-       
-        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-        {text: 'OK', onPress: () => this.props.navigation.navigate('FormResult')},
-      ],
-      { cancelable: false }
-    )
     this.setState({
-      loading: true,
-      isModalGo: true,
-    });
-    console.log('hi');
-    console.log(
-      {name: 'name', data: this.state.Usrname.toString()},
-      {name: 'desc', data: this.state.Description.toString()},
+      isLoading:true
+    })
+    let missingField = '';
 
-      {name: 'lat', data: this.state.lat.toString()},
-      {name: 'long', data: this.state.long.toString()},
-    );
+    if (this.state.Usrname == '') {
+      missingField += 'Enter Title\n';
 
-
-    RNFetchBlob.fetch(
-      'POST',
-      'https://niush.pythonanywhere.com/api/image/',
-      {
-        'Authorization':'Bearer '+this.state.token,
-        // otherHeader : "foo",
-        'Content-Type': 'multipart/form-data',
-
-        //'Content-Type': 'application/json',
-    
-      },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        {name: 'title', data: this.state.Usrname.toString()},
-        {name: 'description', data: this.state.Description.toString()},
-        {name: 'lat', data: this.state.lat.toString()},
-        {name: 'lng', data: this.state.long.toString()},
-        {
-          name: 'image_1',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar1data),
-        },
-
-        {
-          name: 'image_xyz',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar2data),
-        },
-        {
-          name: 'image_file1',
-          filename: 'front.jpeg',
-          filetype: 'image/jpeg',
-          data: RNFetchBlob.wrap(this.state.avatar3data),
-        },
-      ],
-    )
-      .then(resp => {
-        console.log('RE' + JSON.stringify(resp));
-        const myrespnse=JSON.parse(resp.data);
-        const imageres0=myrespnse.image_files[0];
-        const imageres1=myrespnse.image_files[1];
-        const imageres2=myrespnse.image_files[2];
-/*
-        image1file
-        image1tested
-        image1result
-        image1score
-
-        */
-        //file
-        //tested
-        //result 
-        //score
-
-        this.setState({
-          image1file:imageres0.file,
-          image1tested:imageres0.tested,
-          image1result:imageres0.result,
-          image1score:imageres0.score,
+    }
+    if (this.state.Description == '') {
+      missingField += 'Enter Description\n';
 
 
-          image2file:imageres1.file,
-          image2tested:imageres1.tested,
-          image2result:imageres1.result,
-          image2score:imageres1.score,
+    }
+    if (this.state.lat == '') {
+      missingField += 'Enter latitude\n';
 
-          image3file:imageres2.file,
-          image3tested:imageres2.tested,
-          image3result:imageres2.result,
-          image3score:imageres2.score,
-        },
-        this.toggleModal()
-        );
+    }
+    if (this.state.long == '') {
+      missingField += 'Enter longitude\n';
 
-        console.log("new data"+imageres0.tested);
-        // ...
-      })
-      .catch(err => {
-        // ...
+    }
+    if (this.state.avatar1data == '') {
+      missingField += 'Upload Image 1\n';
+
+    }
+    if (this.state.avatar2data == '') {
+      missingField += 'Upload Image 2\n';
+
+    }
+    if (this.state.avatar3data == '') {
+      missingField += 'Upload Image 3\n';
+
+    }
+    if (missingField == '') {
+      Keyboard.dismiss;
+
+      this.setState({
+        loading: true,
+        isModalGo: true,
+        isLoading: true,
       });
+      console.log('hi');
+      console.log(
+        { name: 'name', data: this.state.Usrname.toString() },
+        { name: 'desc', data: this.state.Description.toString() },
+
+        { name: 'lat', data: this.state.lat.toString() },
+        { name: 'long', data: this.state.long.toString() },
+      );
+
+
+      RNFetchBlob.fetch(
+        'POST',
+        'https://www.isac-simo.net/api/image/',
+        {
+          'Authorization': 'Bearer ' + this.state.token,
+          // otherHeader : "foo",
+          'Content-Type': 'multipart/form-data',
+
+          //'Content-Type': 'application/json',
+
+        },
+        [
+          // element with property `filename` will be transformed into `file` in form data
+          { name: 'title', data: this.state.Usrname.toString() },
+          { name: 'description', data: this.state.Description.toString() },
+          { name: 'lat', data: this.state.lat.toString() },
+          { name: 'lng', data: this.state.long.toString() },
+          {
+            name: 'image_1',
+            filename: 'front.jpeg',
+            filetype: 'image/jpeg',
+            data: RNFetchBlob.wrap(this.state.avatar1data),
+          },
+
+          {
+            name: 'image_xyz',
+            filename: 'front.jpeg',
+            filetype: 'image/jpeg',
+            data: RNFetchBlob.wrap(this.state.avatar2data),
+          },
+          {
+            name: 'image_file1',
+            filename: 'front.jpeg',
+            filetype: 'image/jpeg',
+            data: RNFetchBlob.wrap(this.state.avatar3data),
+          },
+        ],
+      )
+        .then(resp => {
+          console.log('RE' + JSON.stringify(resp));
+          const myrespnse = JSON.parse(resp.data);
+          const imageres0 = myrespnse.image_files[0];
+          const imageres1 = myrespnse.image_files[1];
+          const imageres2 = myrespnse.image_files[2];
+          const resData1=JSON.parse(resp.data);
+          const resData2=resData1.image_files;
+          console.log('RE' + JSON.stringify(resp.data));
+          console.log('RE3' + JSON.stringify(resData2));
+          /*
+                  image1file
+                  image1tested
+                  image1result
+                  image1score
+          
+                  */
+          //file
+          //tested
+          //result 
+          //score
+
+const resData= [
+  {
+      "file": "1.jpg",
+      "tested": true,
+      "result": "go",
+      "score": 0.918
+  },
+  {
+      "file": "2.jpg",
+      "tested": true,
+      "result": "go",
+      "score": 0.913
+  },
+  {
+      "file": "3.jpg",
+      "tested": true,
+      "result": "go",
+      "score": 0.921
+  },
+  {
+      "file": "3.jpg",
+      "tested": true,
+      "result": "go",
+      "score": 0.944
+  },
+  {
+      "file": "4.jpg",
+      "tested": true,
+      "result": "go",
+      "score": 0.941 
+  }
+];
+setTimeout(() => {
+  Alert.alert(
+    'Sucessfully Submitted',
+    'Form has been sucessfully submitted.Please go following link to see the result',
+    [
+
+      { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
+      { text: 'OK', onPress: () => this.props.navigation.replace('FormResult',
+      
+      {
+        resData: resData2
+        
+      }
+      
+      ) },
+    ],
+    { cancelable: false }
+  ),
+  this.setState({
+    isLoading:false
+  })
+
+}, 5000);
+
+         
+this.setState({
+  isLoading:false
+})
+          this.setState({
+            image1file: imageres0.file,
+            image1tested: imageres0.tested,
+            image1result: imageres0.result,
+            image1score: imageres0.score,
+
+
+            image2file: imageres1.file,
+            image2tested: imageres1.tested,
+            image2result: imageres1.result,
+            image2score: imageres1.score,
+
+            image3file: imageres2.file,
+            image3tested: imageres2.tested,
+            image3result: imageres2.result,
+            image3score: imageres2.score,
+          }
+            //this.toggleModal()
+          );
+
+          console.log("new data" + imageres0.tested);
+          // ...
+        })
+        .catch(err => {
+          // ...
+        });
+    }
+    else {
+      alert(missingField);
+
+      this.setState({
+        isLoading:false
+      })
+   
+    }
+
+
   };
   toggleModal = () => {
-    this.setState({isModalVisible: !this.state.isModalVisible});
+    this.setState({ isModalVisible: !this.state.isModalVisible });
   };
   toggleModal2 = () => {
-    this.setState({isModalVisible: !this.state.isModalVisible2});
+    this.setState({ isModalVisible: !this.state.isModalVisible2 });
   };
-  
+
   _toggleComponentA = () =>
-    this.setState({showComponentA: !this.state.showComponentA});
+    this.setState({ showComponentA: !this.state.showComponentA });
 
   _toggleComponentB = () =>
-    this.setState({showComponentB: !this.state.showComponentB});
+    this.setState({ showComponentB: !this.state.showComponentB });
   _toggleComponentC = () =>
-    this.setState({showComponentC: !this.state.showComponentC});
+    this.setState({ showComponentC: !this.state.showComponentC });
 
-  _toggleModalGo = () => this.setState({isModalGo: !this.state.isModalGo});
+  _toggleModalGo = () => this.setState({ isModalGo: !this.state.isModalGo });
   _toggleModalNoGo = () =>
-    this.setState({isModalNogo: !this.state.isModalNogo});
+    this.setState({ isModalNogo: !this.state.isModalNogo });
 
   selectPhotoTapped1() {
     const options = {
@@ -298,7 +477,7 @@ export default class HomePage extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        let source = {uri: response.uri};
+        let source = { uri: response.uri };
         let data = response.path;
         let type = response.type;
         // You can also display the image using data:
@@ -332,7 +511,7 @@ export default class HomePage extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        let source = {uri: response.uri};
+        let source = { uri: response.uri };
         let data = response.path;
         let type = response.type;
         // You can also display the image using data:
@@ -367,7 +546,7 @@ export default class HomePage extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        let source = {uri: response.uri};
+        let source = { uri: response.uri };
         let data = response.path;
         let type = response.type;
         // You can also display the image using data:
@@ -437,19 +616,19 @@ export default class HomePage extends Component {
   componentWillMount() {
     //Toast.toastInstance = null;
   }
-  componentDidMount=async()=> {
+  componentDidMount = async () => {
     this.getLatLong();
     console.log('token');
     try {
       const value = await AsyncStorage.getItem('token');
-      if(value !== null) {
+      if (value !== null) {
         this.setState({
-          token:value
+          token: value
         })
-        console.log("val"+value);
+        console.log("val" + value);
         // value previously stored
       }
-    } catch(e) {
+    } catch (e) {
       console.log("val no");
       // error reading value
     }
@@ -482,7 +661,7 @@ export default class HomePage extends Component {
             // See error code charts below.
             console.log(error.code, error.message);
           },
-          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
         );
 
         // }
@@ -561,7 +740,7 @@ export default class HomePage extends Component {
           } else if (response.customButton) {
             console.log('User tapped custom button: ', response.customButton);
           } else {
-            const source = {uri: response.uri};
+            const source = { uri: response.uri };
 
             // You can also display the image using data:
             // const source = { uri: 'data:image/jpeg;base64,' + response.data };
@@ -581,7 +760,7 @@ export default class HomePage extends Component {
           } else if (response.customButton) {
             console.log('User tapped custom button: ', response.customButton);
           } else {
-            let source = {uri: response.uri};
+            let source = { uri: response.uri };
             let data = response.path;
             let type = response.type;
 
@@ -678,13 +857,13 @@ export default class HomePage extends Component {
     });
     console.log('hi');
     console.log(
-      {name: 'email', data: this.state.email.toString()},
-      {name: 'name', data: this.state.Usrname.toString()},
-      {name: 'desc', data: this.state.Description.toString()},
-      {name: 'phone_no', data: this.state.Phone.toString()},
-      {name: 'lat', data: this.state.lat.toString()},
-      {name: 'long', data: this.state.long.toString()},
-      {name: 'disaster_timeline', data: this.state.disaster.toString()},
+      { name: 'email', data: this.state.email.toString() },
+      { name: 'name', data: this.state.Usrname.toString() },
+      { name: 'desc', data: this.state.Description.toString() },
+      { name: 'phone_no', data: this.state.Phone.toString() },
+      { name: 'lat', data: this.state.lat.toString() },
+      { name: 'long', data: this.state.long.toString() },
+      { name: 'disaster_timeline', data: this.state.disaster.toString() },
     );
     /* console.log(
       JSON.stringify([
@@ -787,21 +966,21 @@ export default class HomePage extends Component {
               */
 
     if (missingField == '') {
-      console.log('Authorization Bearer '+this.state.token);
+      console.log('Authorization Bearer ' + this.state.token);
       RNFetchBlob.fetch(
         'POST',
         'https://niush.pythonanywhere.com/api/image/',
         {
-          'Authorization':'Bearer '+this.state.token,
+          'Authorization': 'Bearer ' + this.state.token,
           // otherHeader : "foo",
           'Content-Type': 'multipart/form-data',
         },
         [
           // element with property `filename` will be transformed into `file` in form data
-          {name: 'title', data: this.state.email.toString()},
-          {name: 'description', data: this.state.Description.toString()},
-          {name: 'lat', data: this.state.lat.toString()},
-          {name: 'lng', data: this.state.long.toString()},
+          { name: 'title', data: this.state.email.toString() },
+          { name: 'description', data: this.state.Description.toString() },
+          { name: 'lat', data: this.state.lat.toString() },
+          { name: 'lng', data: this.state.long.toString() },
           {
             name: 'image_1',
             filename: 'front.jpeg',
@@ -830,22 +1009,22 @@ export default class HomePage extends Component {
           // ...
         });
     } else {
-      console.log('Authorization Bearer '+this.state.token);
+      console.log('Authorization Bearer ' + this.state.token);
       RNFetchBlob.fetch(
         'POST',
         'https://niush.pythonanywhere.com/api/image/',
         {
           'Authorization':
-            'Bearer '+this.state.token,
+            'Bearer ' + this.state.token,
           // otherHeader : "foo",
           'Content-Type': 'multipart/form-data',
         },
         [
           // element with property `filename` will be transformed into `file` in form data
-          {name: 'title', data: this.state.email.toString()},
-          {name: 'description', data: this.state.Description.toString()},
-          {name: 'lat', data: this.state.lat.toString()},
-          {name: 'lng', data: this.state.long.toString()},
+          { name: 'title', data: this.state.email.toString() },
+          { name: 'description', data: this.state.Description.toString() },
+          { name: 'lat', data: this.state.lat.toString() },
+          { name: 'lng', data: this.state.long.toString() },
           {
             name: 'image_1',
             filename: 'front.jpeg',
@@ -880,173 +1059,170 @@ export default class HomePage extends Component {
     const finalimage = this.state.finalimage;
     //console.log(JSON.stringify(sampleState));
     return (
-      <View style={{backgroundColor: '#d2dae2'}}>
-            
-        <FAB
-    style={styles.fab}
-    color="#fff"
-    small
-    icon="send"
-    onPress={() => this._handleMore()}
-  />
-        
+      <View style={{ backgroundColor: '#d2dae2' }}>
+
+<FAB
+          loading={true}
+          style={styles.fab}
+          color="black"
+          small
+          icon="enter"
+          onPress={() => this._handleMore()}
+        />
+
         <ScrollView>
 
-                   <Modal
-            style={{backgroundColor: '#fff',height:200}}
+          <Modal
+            style={{ backgroundColor: '#fff', height: 200 }}
             animationType="slide"
             // visible={visible}
             backdropColor="black"
             backdropOpacity={0.5}
             swipeDirection="down"
-           // transparent
+            // transparent
             isVisible={this.state.isModalVisible2}>
 
-<View style={{
-          flex: 1,
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center'}}>
-    <View style={{
-            width: 300,
-            height: 300}}>
-               <Text style={{textAlign:'center',fontSize:20,fontWeight:'bold'}}>Sorry </Text>
+            <View style={{
+              flex: 1,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <View style={{
+                width: 300,
+                height: 300
+              }}>
+                <Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>Sorry </Text>
 
-    <View  style={{backgroundColor: '#fff',height:200}}>
-              <View style={{flex: 1}}>
-                  <Image
-                    style={{
-                      width: 120,
-                      height: 90,
-                      alignSelf: 'center',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    source={require('../../assets/nogo.png')}
-                  />
+                <View style={{ backgroundColor: '#fff', height: 200 }}>
+                  <View style={{ flex: 1 }}>
+                    <Image
+                      style={{
+                        width: 120,
+                        height: 90,
+                        alignSelf: 'center',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      source={require('../../assets/nogo.png')}
+                    />
+                  </View>
+
+                  <Text>Image 1 Score</Text>
+                  <Text>{this.state.image1score}</Text>
+                  <Text>Image 1 Result</Text>
+                  <Text>{this.state.image1result}</Text>
+
+                  <Text>Image 2 Score</Text>
+                  <Text>{this.state.image2score}</Text>
+                  <Text>Image 2 Result</Text>
+                  <Text>{this.state.image2result}</Text>
+
+                  <Text>Image 3 Score</Text>
+                  <Text>{this.state.image3score}</Text>
+                  <Text>Image 3 Result</Text>
+                  <Text>{this.state.image3result}</Text>
+
+                  <Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>Your Score is </Text>
+                  <Text style={{ textAlign: 'center', fontSize: 25, fontWeight: 'bold' }}>69 </Text>
+                  <Button style={{ width: 200 }} title="Close" onPress={this.toggleModal2} />
                 </View>
-   
-          <Text>Image 1 Score</Text>
-          <Text>{this.state.image1score}</Text>
-          <Text>Image 1 Result</Text>
-          <Text>{this.state.image1result}</Text>
-
-          <Text>Image 2 Score</Text>
-          <Text>{this.state.image2score}</Text>
-          <Text>Image 2 Result</Text>
-          <Text>{this.state.image2result}</Text>
-
-          <Text>Image 3 Score</Text>
-          <Text>{this.state.image3score}</Text>
-          <Text>Image 3 Result</Text>
-          <Text>{this.state.image3result}</Text>
-
-                <Text style={{textAlign:'center',fontSize:20,fontWeight:'bold'}}>Your Score is </Text>
-                <Text style={{textAlign:'center',fontSize:25,fontWeight:'bold'}}>69 </Text>
-                <Button style={{width:200}} title="Close" onPress={this.toggleModal2} />
               </View>
-    </View>
-          </View>
-          </Modal>       
-       
-       
+            </View>
+          </Modal>
+
+
           <Modal
-            style={{backgroundColor: '#fff',height:200}}
+            style={{ backgroundColor: '#fff', height: 200 }}
             animationType="slide"
             // visible={visible}
             backdropColor="black"
             backdropOpacity={0.5}
             swipeDirection="down"
-           // transparent
+            // transparent
             isVisible={this.state.isModalVisible}>
 
-<View style={{
-          flex: 1,
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center'}}>
+            <View style={{
+              flex: 1,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
 
-<View style={styles.container}>
-        <Table borderStyle={{borderWidth: 1}}>
-          <Row data={this.state.tableHead} flexArr={[1, 2, 1, 1]} style={styles.head} textStyle={styles.text}/>
-          <TableWrapper style={styles.wrapper}>
-            <Col data={this.state.tableTitle} style={styles.title} heightArr={[28,28]} textStyle={styles.text}/>
-            <Rows data={this.state.tableData} flexArr={[2, 1, 1]} style={styles.row} textStyle={styles.text}/>
-          </TableWrapper>
-        </Table>
-      </View>
-
-
-    <View style={{
-            width: 300,
-            height: 300}}>
-               <Text style={{textAlign:'center',fontSize:20,fontWeight:'bold'}}>We have detected: </Text>
-
-    <View  style={{backgroundColor: '#fff',height:200}}>
-    <View style={{marginVertical:10}}></View>
-    <View style={{height:1,width:'100%',backgroundColor:'#000'}}></View>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 1 Score :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image1score *100} %</Text>
-                </Text>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 1 Result :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image1result}</Text>
-                </Text>
-
-                <View style={{height:1,width:'100%',backgroundColor:'#000'}}></View>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 2 Score :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image2score*100} %</Text>
-                </Text>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 2 Result :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image2result}</Text>
-                </Text>
-<View style={{height:1,width:'100%',backgroundColor:'#000'}}></View>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 3 Score :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image3score*100} %</Text>
-                </Text>
-
-                <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>Image 3 Result :
-                 <Text style={{
-                  textAlign:'center',fontSize:20,fontWeight:'bold'
-                }}>{this.state.image3result}</Text>
-                </Text>
-
-                <View style={{height:1,width:'100%',backgroundColor:'#000'}}></View>
-<View style={{marginVertical:10}}></View>
          
-       
- 
 
-                    <Button style={{width:200}} title="Close" onPress={this.toggleModal} />
+
+              <View style={{
+                width: 300,
+                height: 300
+              }}>
+                <Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>We have detected: </Text>
+
+                <View style={{ backgroundColor: '#fff', height: 200 }}>
+                  <View style={{ marginVertical: 10 }}></View>
+                  <View style={{ height: 1, width: '100%', backgroundColor: '#000' }}></View>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 1 Score :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image1score * 100} %</Text>
+                  </Text>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 1 Result :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image1result}</Text>
+                  </Text>
+
+                  <View style={{ height: 1, width: '100%', backgroundColor: '#000' }}></View>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 2 Score :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image2score * 100} %</Text>
+                  </Text>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 2 Result :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image2result}</Text>
+                  </Text>
+                  <View style={{ height: 1, width: '100%', backgroundColor: '#000' }}></View>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 3 Score :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image3score * 100} %</Text>
+                  </Text>
+
+                  <Text style={{
+                    textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                  }}>Image 3 Result :
+                 <Text style={{
+                      textAlign: 'center', fontSize: 20, fontWeight: 'bold'
+                    }}>{this.state.image3result}</Text>
+                  </Text>
+
+                  <View style={{ height: 1, width: '100%', backgroundColor: '#000' }}></View>
+                  <View style={{ marginVertical: 10 }}></View>
+
+
+
+
+                  <Button style={{ width: 200 }} title="Close" onPress={this.toggleModal} />
+                </View>
               </View>
-    </View>
-          </View>
+            </View>
           </Modal>
           <Card style={styles.cardWrapper} elevation={5}>
             <Card.Title
@@ -1063,7 +1239,7 @@ export default class HomePage extends Component {
             {this.state.showComponentA ? (
               <Card.Content>
                 <KeyboardAwareScrollView>
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       Title
@@ -1082,7 +1258,7 @@ export default class HomePage extends Component {
                   </View>
 
                   <KeyboardAwareScrollView>
-                    <View style={{paddingVertical: 8}}>
+                    <View style={{ paddingVertical: 8 }}>
                       <Text style={styles.newText}>
                         <Text style={styles.required}>*</Text>
                         Description
@@ -1121,7 +1297,7 @@ export default class HomePage extends Component {
                     </View>
                   </KeyboardAwareScrollView>
 
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       latitude
@@ -1134,7 +1310,7 @@ export default class HomePage extends Component {
                     />
                   </View>
 
-                  <View style={{paddingVertical: 8}}>
+                  <View style={{ paddingVertical: 8 }}>
                     <Text style={styles.newText}>
                       <Text style={styles.required}>*</Text>
                       longitude
@@ -1149,8 +1325,8 @@ export default class HomePage extends Component {
                 </KeyboardAwareScrollView>
               </Card.Content>
             ) : (
-              <Text></Text>
-            )}
+                <Text></Text>
+              )}
           </Card>
 
           <Card style={styles.cardWrapper} elevation={5}>
@@ -1168,78 +1344,85 @@ export default class HomePage extends Component {
 
             {this.state.showComponentC ? (
               <Card.Content>
-                <View style={{flex: 1, alignItems: 'center'}}>
+ <ActionSheet
+                      ref={o => (this.ActionSheet1 = o)}
+                      title={
+                        <Text style={{ color: '#000', fontSize: 18 }}>
+                          Upload a Photo
+                        </Text>
+                      }
+                      options={options}
+                      cancelButtonIndex={0}
+                      destructiveButtonIndex={3}
+                      onPress={index => {
+                        //alert('index' + index);
+                        if (index == 1) {
+                          //Make change like this
+                          //this.props.navigation.navigate('RecordVideo');
+                          
+                        } else if (index == 2) {
+                          this.selectPhotoTapped1.bind(this);
+                        } else {
+                        }
+                      }}
+                    />
+                                        <ActionSheet
+                      ref={o => (this.ActionSheet2 = o)}
+                      title={
+                        <Text style={{ color: '#000', fontSize: 18 }}>
+                          Upload a Photo
+                        </Text>
+                      }
+                      options={options}
+                      cancelButtonIndex={0}
+                      destructiveButtonIndex={3}
+                      onPress={index => {
+                        //alert('index' + index);
+                        if (index == 1) {
+                          //Make change like this
+                          //this.props.navigation.navigate('RecordVideo');
+                          
+                        } else if (index == 2) {
+                          this.selectPhotoTapped1.bind(this);
+                        } else {
+                        }
+                      }}
+                    />
+                                        <ActionSheet
+                      ref={o => (this.ActionSheet3 = o)}
+                      title={
+                        <Text style={{ color: '#000', fontSize: 18 }}>
+                          Upload a Photo
+                        </Text>
+                      }
+                      options={options}
+                      cancelButtonIndex={0}
+                      destructiveButtonIndex={3}
+                      onPress={index => {
+                        //alert('index' + index);
+                        if (index == 1) {
+                          //Make change like this
+                          //this.props.navigation.navigate('RecordVideo');
+                          
+                        } else if (index == 2) {
+                          this.selectPhotoTapped1.bind(this);
+                        } else {
+                        }
+                      }}
+                    />
+                <View style={{ flex: 1, alignItems: 'center' }}>
                   <View style={styles.container}>
                     <Text>
                       {' '}
                       <Text style={styles.required}>* </Text>Image 1
                     </Text>
-                    <TouchableOpacity
-                      onPress={this.selectPhotoTapped1.bind(this)}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarContainer,
-                          {marginBottom: 20},
-                        ]}>
-                        {this.state.avatarSource1 === null ? (
-                          <IconsAnt name="camerao" size={50} color="#bedff6" />
-                        ) : (
-                          <Image
-                            style={styles.avatar}
-                            source={this.state.avatarSource1}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                    <Text>
-                      {' '}
-                      <Text style={styles.required}>* </Text>Image 2
-                    </Text>
-                    <TouchableOpacity
-                      onPress={this.selectPhotoTapped2.bind(this)}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarContainer,
-                          {marginBottom: 20},
-                        ]}>
-                        {this.state.avatarSource2 === null ? (
-                          <IconsAnt name="camerao" size={50} color="#bedff6" />
-                        ) : (
-                          <Image
-                            style={styles.avatar}
-                            source={this.state.avatarSource2}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                    <Text>
-                      {' '}
-                      <Text style={styles.required}>* </Text>Image 3
-                    </Text>
-                    <TouchableOpacity
-                      onPress={this.selectPhotoTapped3.bind(this)}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarContainer,
-                          {marginBottom: 20},
-                        ]}>
-                        {this.state.avatarSource3 === null ? (
-                          <IconsAnt name="camerao" size={50} color="#bedff6" />
-                        ) : (
-                          <Image
-                            style={styles.avatar}
-                            source={this.state.avatarSource3}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
+                   
+
+
                   </View>
                 </View>
 
-                <View style={{flex: 1, alignItems: 'center'}}></View>
+                <View style={{ flex: 1, alignItems: 'center' }}></View>
 
                 <View>
                   {this.state.finalimages.map((data, index) => {
@@ -1276,8 +1459,8 @@ export default class HomePage extends Component {
                 </View>
               </Card.Content>
             ) : (
-              <Text></Text>
-            )}
+                <Text></Text>
+              )}
           </Card>
         </ScrollView>
 
@@ -1320,9 +1503,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     margin: 16,
     right: 0,
-    bottom: 10, 
-    zIndex:99999,
-    backgroundColor:'#64b3ea'
+    bottom: 10,
+    zIndex: 99999,
+    backgroundColor: '#64b3ea'
 
   },
   cardWrapper: {
@@ -1423,9 +1606,9 @@ const styles = StyleSheet.create({
   },
 
   container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
-  head: {  height: 40,  backgroundColor: '#f1f8ff'  },
+  head: { height: 40, backgroundColor: '#f1f8ff' },
   wrapper: { flexDirection: 'row' },
   title: { flex: 1, backgroundColor: '#f6f8fa' },
-  row: {  height: 28  },
+  row: { height: 28 },
   text: { textAlign: 'center' }
 });
