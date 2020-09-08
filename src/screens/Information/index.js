@@ -1,13 +1,23 @@
-import React,{useEffect,useState} from 'react';
+import React, {Component} from 'react';
+import {Text, View, StyleSheet} from 'react-native';
 
-import NoData from "../../components/NoData/index"
-const Information = () => {
-
-
- 
-
+export class index extends Component {
+  render() {
     return (
-        <NoData/>
+      <View style={styles.container}>
+        <Text> Information </Text>
+        <Text>Coming Soon! </Text>
+      </View>
     );
-};
-export default Information;
+  }
+}
+
+export default index;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
