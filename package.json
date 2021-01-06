@@ -14,7 +14,7 @@
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "^5.9.5",
     "@react-native-community/slider": "^3.0.3",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "buffer": "5.4.3",
     "expo-av": "^8.3.0",
     "gl-react": "4.0.1",
