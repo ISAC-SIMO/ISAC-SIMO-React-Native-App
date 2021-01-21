@@ -19,7 +19,7 @@
     "expo-av": "^8.3.0",
     "gl-react": "4.0.1",
     "gl-react-native": "4.0.1",
-    "immer": "^7.0.5",
+    "immer": "^8.0.1",
     "react": "16.13.1",
     "react-native": "0.63.0",
     "react-native-actionsheet": "^2.4.2",
