@@ -54,16 +54,16 @@ class index extends Component {
     let {width} = Dimensions.get('window');
     this.maskLength = (width * 90) / 100;
     this.state = {
-      ...settings,
-      hue: 0,
-      blur: 0,
-      sepia: 0,
-      sharpen: 0,
-      negative: 0,
-      contrast: 1,
-      saturation: 1,
-      brightness: 1,
-      temperature: 6500,
+      // ...settings,
+      // hue: 0,
+      // blur: 0,
+      // sepia: 0,
+      // sharpen: 0,
+      // negative: 0,
+      // contrast: 1,
+      // saturation: 1,
+      // brightness: 1,
+      // temperature: 6500,
       exposure: 0,
       selected: [],
       image: null,
@@ -89,7 +89,9 @@ class index extends Component {
       scrollOffset: null,
       maxScrollOffset: null,
       yOff: null,
-      bH: null,
+      xOff: null,
+      boxH: null,
+      boxW: null,
     };
     this.setModalVisible = this.setModalVisible.bind(this);
     this.scrollViewRef = React.createRef();
@@ -145,9 +147,10 @@ class index extends Component {
     });
   };
   takePicture = async function () {
+    const deviceHeight = Dimensions.get('window').height;
+    const deviceWidth = Dimensions.get('window').width;
     //this function helps in capturing picture for RNCamera library
-    const {token, current} = this.props;
-    const {yOff, bH} = this.state;
+    const {xOff, yOff, boxH, boxW} = this.state;
     if (this.camera) {
       Snackbar.show({
         text: 'Please wait Image is being cropped',
@@ -164,19 +167,22 @@ class index extends Component {
         .then(data => {
           //returns images as data
           let strData = data;
+          console.log(data, 'dataa');
           this.setState({showCamera: false});
           let cropData = {
             //config for image editor library to crop image within the border of the RNCamera
-            offset: {x: yOff * 5, y: yOff * 5},
-            size: {width: bH * 5, height: bH * 5},
-            displaySize: {width: bH * 5, height: bH * 5},
-            resizeMode: 'contain',
+            offset: {
+              x: (xOff / deviceWidth) * data.width,
+              y: (yOff / deviceHeight) * data.height,
+            },
+            size: {
+              width: (boxW / deviceWidth) * data.width,
+              height: (boxH / deviceHeight) * data.height,
+            },
           };
-          //some optimization is left to be done as it is somewhat off from the image within the border
           ImageEditor.cropImage(strData.uri, cropData).then(url => {
             this.setState({
               image: url,
-
               modalVisible: true,
             });
           });
@@ -352,7 +358,7 @@ class index extends Component {
                     marginTop: Dimensions.get('window').height <= 640 ? 20 : 50,
                     alignItems: 'center',
                   }}>
-                  <Text style={styles.bodyText}> {data.instruction} </Text>
+                  <Text style={styles.bodyText}>{data.instruction}</Text>
                 </View>
               </View>
             </ScrollView>
@@ -511,16 +517,21 @@ class index extends Component {
                 </Text>
               </View>
               <View
-                onTouchStart={this.touchToFocus.bind(this)}
-                style={[styles.contentRow, {height: this.maskLength}]}
                 onLayout={event => {
                   var {x, y, width, height} = event.nativeEvent.layout;
-                  console.log(x, y, width, height, 'consoleeeeeeeeeeee');
-                  this.setState({yOff: y, bH: height});
-                }}>
+                  console.log(x, y, width, height, 'new one');
+                  this.setState({yOff: y});
+                }}
+                onTouchStart={this.touchToFocus.bind(this)}
+                style={[styles.contentRow, {height: this.maskLength}]}>
                 <View style={styles.overlay} />
 
                 <View
+                  onLayout={event => {
+                    var {x, y, width, height} = event.nativeEvent.layout;
+                    console.log(x, y, width, height, 'consoleeeeeeeeeeee');
+                    this.setState({xOff: x, boxH: height, boxW: width});
+                  }}
                   style={[
                     styles.content,
                     {width: this.maskLength, height: this.maskLength},
