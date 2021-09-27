@@ -180,7 +180,7 @@ class index extends Component {
                             fontWeight: 'bold',
                           }}>
                           {' '}
-                          {each.score * 100}%{' '}
+                          {Math.round(each.score) * 100}%{' '}
                         </Text>
                       </View>
                       <View style={{flexWrap: 'wrap', top: 20}}>
@@ -230,7 +230,7 @@ class index extends Component {
                                 <Text style={styles.bodyText}> Score: </Text>
                                 <Text style={styles.bodyText}>
                                   {' '}
-                                  {each.score * 100}%{' '}
+                                  {Math.round(each.score) * 100}%{' '}
                                 </Text>
                               </>
                             )}

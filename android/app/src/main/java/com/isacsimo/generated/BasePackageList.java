@@ -1,4 +1,4 @@
-package com.rn_isac.generated;
+package com.isacsimo.generated;
 
 import java.util.Arrays;
 import java.util.List;

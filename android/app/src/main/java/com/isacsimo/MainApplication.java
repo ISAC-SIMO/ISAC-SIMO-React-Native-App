@@ -1,6 +1,6 @@
-package com.rn_isac;
+package com.isacsimo;
 
-import com.rn_isac.generated.BasePackageList;
+import com.isacsimo.generated.BasePackageList;
 import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
@@ -70,7 +70,7 @@ public class MainApplication extends Application implements ReactApplication {
          We use reflection here to pick up the class that initializes Flipper,
         since Flipper library is not available in release mode
         */
-        Class<?> aClass = Class.forName("com.rn_isac.ReactNativeFlipper");
+        Class<?> aClass = Class.forName("com.isacsimo.ReactNativeFlipper");
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);

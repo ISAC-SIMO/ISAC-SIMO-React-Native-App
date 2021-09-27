@@ -20,7 +20,7 @@ class AddButton extends Component {
     modalVisible: false,
     switchValue: false,
   };
-  setModalVisible = (visible) => {
+  setModalVisible = visible => {
     this.setState({modalVisible: visible});
   };
   onAdd = () => {
@@ -33,7 +33,7 @@ class AddButton extends Component {
       this.setState({modalVisible: false});
     }
   };
-  toggleSwitch = (value) => {
+  toggleSwitch = value => {
     //onValueChange of the switch this function will be called
     this.setState({switchValue: value});
     //state changes according to switch
@@ -44,6 +44,7 @@ class AddButton extends Component {
     return (
       <>
         <TouchableOpacity
+          activeOpacity={0.9}
           style={{height: 80, width: 80, bottom: -25}}
           onPress={switchValue ? this.onAdd : () => this.setModalVisible(true)}>
           <View
@@ -55,6 +56,7 @@ class AddButton extends Component {
               justifyContent: 'center',
             }}>
             <TouchableOpacity
+              activeOpacity={0.9}
               style={{flex: 1}}
               // onPress={this.onAdd}
               onPress={
@@ -128,7 +130,7 @@ class AddButton extends Component {
                 <View
                   style={{
                     flexDirection: 'row',
-                    justifyContent: 'space-evenly',
+                    // justifyContent: 'space-evenly',
                     marginHorizontal: 20,
                     marginTop: 20,
                   }}>
@@ -142,7 +144,7 @@ class AddButton extends Component {
                   <Text
                     style={{
                       fontWeight: '900',
-                      fontSize: 16,
+                      fontSize: 14,
                       color: '#4A4A4A',
                       alignSelf: 'center',
                       left: 20,
@@ -168,7 +170,7 @@ class AddButton extends Component {
                   <Text
                     style={{
                       fontWeight: '900',
-                      fontSize: 16,
+                      fontSize: 14,
                       color: '#4A4A4A',
                       alignSelf: 'center',
                       left: 20,

@@ -3,7 +3,7 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
-target 'rn_isac' do
+target 'isacsimo' do
   config = use_native_modules!
 
   use_react_native!(:path => config[:reactNativePath],
@@ -20,7 +20,7 @@ target 'rn_isac' do
 
   pod 'react-native-geolocation-service', :path => '../node_modules/react-native-geolocation-service'
 
-  target 'rn_isacTests' do
+  target 'isacsimoTests' do
     inherit! :complete
     # Pods for testing
   end

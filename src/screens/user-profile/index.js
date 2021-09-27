@@ -44,13 +44,13 @@ class Profile extends Component {
   };
   getCurrentLocation = async () => {
     Geolocation.getCurrentPosition(
-      (position) => {
+      position => {
         let lat = position.coords.latitude;
         let lng = position.coords.longitude;
 
         this.props.userProfileGet({lat, lng});
       },
-      (error) => alert(JSON.stringify(error)),
+      error => alert(JSON.stringify(error)),
       {
         accuracy: {android: 'high'},
         forceRequestLocation: true,
@@ -172,7 +172,7 @@ class Profile extends Component {
         )}
         <View style={{bottom: 40, position: 'absolute', flexDirection: 'row'}}>
           <Text style={{fontSize: 12, color: '#4A4A4A'}}>AppVersion : </Text>
-          <Text style={{fontSize: 12, color: '#4A4A4A'}}>1.0.0 </Text>
+          <Text style={{fontSize: 12, color: '#4A4A4A'}}>1.0.2 </Text>
         </View>
       </View>
     );
