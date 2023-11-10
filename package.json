@@ -17,7 +17,7 @@
     "@react-native-community/netinfo": "^5.9.5",
     "@react-native-community/picker": "^1.8.1",
     "@react-native-community/slider": "^3.0.3",
-    "axios": "^0.22.0",
+    "axios": "^1.6.0",
     "buffer": "5.4.3",
     "immer": "^9.0.6",
     "react": "17.0.1",
